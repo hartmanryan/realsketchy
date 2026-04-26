@@ -5,20 +5,21 @@ import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 
 export const maxDuration = 60;
 
-const prisma = new PrismaClient();
-const replicate = new Replicate({
-  auth: process.env.REPLICATE_API_TOKEN,
-});
-
-const s3Client = new S3Client({
-  region: process.env.AWS_REGION as string,
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID as string,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY as string,
-  },
-});
-
 export async function POST(req: Request) {
+  const replicate = new Replicate({
+    auth: process.env.REPLICATE_API_TOKEN,
+  });
+
+  const s3Client = new S3Client({
+    region: process.env.AWS_REGION as string,
+    credentials: {
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID as string,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY as string,
+    },
+  });
+
+  const prisma = new PrismaClient();
+
   try {
     const body = await req.json();
     const { widget_uuid, address, fullName, email, sellerIntent, valuation } = body;

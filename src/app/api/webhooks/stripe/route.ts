@@ -2,13 +2,13 @@ import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { PrismaClient } from "@prisma/client";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
-  apiVersion: "2026-04-22.dahlia" as any,
-});
-
 const prisma = new PrismaClient();
 
 export async function POST(req: Request) {
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
+    apiVersion: "2026-04-22.dahlia" as any,
+  });
+
   const payload = await req.text();
   const signature = req.headers.get("Stripe-Signature") as string;
 
