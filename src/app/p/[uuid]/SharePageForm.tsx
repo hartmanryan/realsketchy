@@ -15,7 +15,7 @@ export default function SharePageForm({ uuid }: { uuid: string }) {
         setOptions({
           apiKey: process.env.NEXT_PUBLIC_GOOGLE_PLACES_KEY as string,
           version: "weekly"
-        });
+        } as any);
 
         // @ts-ignore
         const { Autocomplete } = await importLibrary("places");
