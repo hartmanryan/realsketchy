@@ -1,0 +1,124 @@
+.layout {
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--bg-base);
+}
+
+.sidebar {
+  width: 250px;
+  background-color: var(--bg-surface);
+  border-right: 1px solid var(--border-light);
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem 1rem;
+}
+
+.logo {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 2rem;
+  padding: 0 1rem;
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.navLink {
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-md);
+  color: var(--text-muted);
+  font-weight: 500;
+  transition: all var(--transition-fast);
+}
+
+.navLink:hover {
+  background-color: var(--bg-surface-elevated);
+  color: var(--text-main);
+}
+
+.navLinkActive {
+  background-color: var(--bg-surface-elevated);
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.userContainer {
+  margin-top: auto;
+  padding: 1rem;
+  border-top: 1px solid var(--border-light);
+}
+
+.mainContent {
+  flex: 1;
+  padding: 2rem 3rem;
+  overflow-y: auto;
+}
+
+.pageHeader {
+  margin-bottom: 2rem;
+}
+
+.pageTitle {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.pageDescription {
+  color: var(--text-muted);
+}
+
+/* Cards */
+.card {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: var(--shadow-md);
+}
+
+.cardTitle {
+  font-size: 1.25rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.codeBlock {
+  background-color: var(--bg-base);
+  padding: 1rem;
+  border-radius: var(--radius-md);
+  font-family: monospace;
+  color: var(--secondary);
+  border: 1px solid var(--border-light);
+  overflow-x: auto;
+  margin: 1rem 0;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th, .table td {
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.table th {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.thumbnail {
+  width: 60px;
+  height: 60px;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+  border: 1px solid var(--border-light);
+}

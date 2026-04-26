@@ -1,0 +1,46 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  // Note: output may be different if using Prisma v6+ but standard is fine
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                 String           @id @default(uuid())
+  auth_id            String           @unique
+  email              String           @unique
+  stripe_customer_id String?          @unique
+  available_credits  Int              @default(0)
+  widget_settings    WidgetSettings?
+  leads              LeadHistory[]
+  created_at         DateTime         @default(now())
+  updated_at         DateTime         @updatedAt
+}
+
+model WidgetSettings {
+  id                      String   @id @default(uuid())
+  user_id                 String   @unique
+  user                    User     @relation(fields: [user_id], references: [id])
+  widget_uuid             String   @unique @default(uuid())
+  destination_webhook_url String?
+  brand_color             String?  @default("#000000")
+  created_at              DateTime @default(now())
+  updated_at              DateTime @updatedAt
+}
+
+model LeadHistory {
+  id            String   @id @default(uuid())
+  user_id       String
+  user          User     @relation(fields: [user_id], references: [id])
+  address       String
+  lead_email    String
+  seller_intent String?
+  s3_image_url  String?
+  created_at    DateTime @default(now())
+}
