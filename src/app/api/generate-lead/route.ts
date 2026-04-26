@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
+import prisma from "@/lib/prisma";
 import Replicate from "replicate";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 
@@ -17,8 +17,6 @@ export async function POST(req: Request) {
       secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY as string,
     },
   });
-
-  const prisma = new PrismaClient();
 
   try {
     const body = await req.json();

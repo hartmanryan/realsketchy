@@ -1,10 +1,8 @@
 import { auth } from "@clerk/nextjs/server";
-import { PrismaClient } from "@prisma/client";
+import prisma from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import styles from "./dashboard.module.css";
 import { revalidatePath } from "next/cache";
-
-const prisma = new PrismaClient();
 
 export default async function DashboardOverview() {
   const { userId } = await auth();
@@ -14,10 +12,24 @@ export default async function DashboardOverview() {
   }
 
   // Ensure user and widget settings exist
-  let user = await prisma.user.findUnique({
-    where: { auth_id: userId },
-    include: { widget_settings: true },
-  });
+  let user;
+  try {
+    user = await prisma.user.findUnique({
+      where: { auth_id: userId },
+      include: { widget_settings: true },
+    });
+  } catch (error) {
+    console.error("DATABASE_FETCH_ERROR", error);
+    return (
+      <div style={{ padding: '2rem', color: 'red', textAlign: 'center' }}>
+        <h2>Database Connection Error</h2>
+        <p>Please check your DATABASE_URL environment variable in Vercel.</p>
+        <code style={{ display: 'block', marginTop: '1rem', background: '#333', padding: '1rem' }}>
+          {JSON.stringify(error)}
+        </code>
+      </div>
+    );
+  }
 
   if (!user) {
     // We can fetch email from clerk in a real app, but for now we'll put a placeholder or fetch later
