@@ -3,7 +3,7 @@ import Stripe from "stripe";
 import { PrismaClient } from "@prisma/client";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
-  apiVersion: "2024-04-10", // Using a recent stable version string (Stripe typings may require specific versions depending on the installed package)
+  apiVersion: "2026-04-22.dahlia" as any,
 });
 
 const prisma = new PrismaClient();
