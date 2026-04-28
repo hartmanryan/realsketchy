@@ -8,6 +8,7 @@ export default function SharePageForm({ uuid }: { uuid: string }) {
   const [loadingState, setLoadingState] = useState<"idle" | "locating" | "painting" | "success">("idle");
   const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
   const [address, setAddress] = useState("");
+  const [addressComponents, setAddressComponents] = useState({ street: "", city: "", state: "", zip: "" });
   const addressInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -37,6 +38,24 @@ export default function SharePageForm({ uuid }: { uuid: string }) {
             const place = autocomplete.getPlace();
             if (place.formatted_address) {
               setAddress(place.formatted_address);
+              let street_number = "";
+              let route = "";
+              let city = "";
+              let state = "";
+              let zip = "";
+              place.address_components?.forEach((component: any) => {
+                if (component.types.includes("street_number")) street_number = component.long_name;
+                if (component.types.includes("route")) route = component.short_name;
+                if (component.types.includes("locality")) city = component.long_name;
+                if (component.types.includes("administrative_area_level_1")) state = component.short_name;
+                if (component.types.includes("postal_code")) zip = component.long_name;
+              });
+              setAddressComponents({
+                street: `${street_number} ${route}`.trim() || place.name || "",
+                city,
+                state,
+                zip
+              });
             }
           });
         }
@@ -58,6 +77,7 @@ export default function SharePageForm({ uuid }: { uuid: string }) {
       email: formData.get("email"),
       sellerIntent: formData.get("sellerIntent"),
       valuation: formData.get("valuation") === "on",
+      addressComponents: addressComponents.street ? addressComponents : undefined,
     };
 
     setLoadingState("locating");

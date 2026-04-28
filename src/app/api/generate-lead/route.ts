@@ -20,7 +20,7 @@ export async function POST(req: Request) {
 
   try {
     const body = await req.json();
-    const { widget_uuid, address, fullName, email, sellerIntent, valuation } = body;
+    const { widget_uuid, address, fullName, email, sellerIntent, valuation, addressComponents } = body;
 
     if (!widget_uuid || !address || !email) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
@@ -133,18 +133,39 @@ export async function POST(req: Request) {
 
     // Thanks.io Fulfillment
     if (process.env.THANKS_IO_API_TOKEN) {
-      fetch("https://api.thanks.io/api/v2/send/postcard", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${process.env.THANKS_IO_API_TOKEN}`
-        },
-        body: JSON.stringify({
-          recipient: { name: fullName, address },
-          image_url: s3ImageUrl,
-          message: `Hi ${fullName}, hope you love this watercolor sketch of ${address}! Let me know if you want a free valuation.`
-        })
-      }).catch(err => console.error("Thanks.io Error:", err));
+      try {
+        const thanksPayload: any = {
+          front_image_url: s3ImageUrl,
+          message: `Hi ${fullName}, hope you love this architectural sketch of ${address}! Let me know if you want a free valuation.`
+        };
+
+        if (addressComponents) {
+          thanksPayload.recipients = [{
+            name: fullName,
+            address: addressComponents.street,
+            city: addressComponents.city,
+            province: addressComponents.state,
+            postal_code: addressComponents.zip,
+            country: "US"
+          }];
+        } else {
+          thanksPayload.recipients = [{
+            name: fullName,
+            address: address
+          }];
+        }
+
+        await fetch("https://api.thanks.io/api/v2/send/postcard", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${process.env.THANKS_IO_API_TOKEN}`
+          },
+          body: JSON.stringify(thanksPayload)
+        });
+      } catch (err) {
+        console.error("Thanks.io Error:", err);
+      }
     }
 
     return NextResponse.json({ success: true, imageUrl: s3ImageUrl });
