@@ -21,7 +21,7 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="en" className={inter.variable}>
-        <body>
+        <body suppressHydrationWarning>
           <main style={{ flex: 1, display: "flex", flexDirection: "column" }}>
             {children}
           </main>

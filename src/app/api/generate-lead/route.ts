@@ -43,7 +43,7 @@ export async function POST(req: Request) {
     }
 
     // 2. Capture Base Image (Google Street View)
-    const streetViewUrl = `https://maps.googleapis.com/maps/api/streetview?size=640x640&location=${encodeURIComponent(address)}&fov=80&pitch=10&key=${process.env.GOOGLE_STREETVIEW_API_KEY}`;
+    const streetViewUrl = `https://maps.googleapis.com/maps/api/streetview?size=640x640&location=${encodeURIComponent(address)}&fov=50&pitch=10&key=${process.env.GOOGLE_STREETVIEW_API_KEY}`;
     
     const streetViewRes = await fetch(streetViewUrl);
     if (!streetViewRes.ok) {
@@ -55,16 +55,18 @@ export async function POST(req: Request) {
     
     const base64Image = `data:image/jpeg;base64,${Buffer.from(imageBuffer).toString('base64')}`;
 
-    // 3. AI Transformation (Replicate ControlNet)
+    // 3. AI Transformation (SDXL ControlNet Canny)
     let outputImageUrl = "";
     try {
       const output = await replicate.run(
-        "rossjillian/controlnet:7925f46cb0d859a7ea2cc08960fa7ea2762e1ce9a492b49b380a0201d4a0fcff", // Generic controlnet model placeholder
+        "lucataco/sdxl-controlnet:06d6fae3b75ab68a28cd2900afa6033166910dd09fd9751047043a5bbb4c184b",
         {
           input: {
             image: base64Image,
-            prompt: "Vibrant architectural watercolor painting of a beautiful house, crisp structural ink lines, colorful fluid watercolor washes, white background, masterpiece, real estate art.",
-            negative_prompt: "photorealistic, ugly, distorted geometry, cars, text, watermarks, dark, trees blocking house.",
+            prompt: "A sharp, high-contrast black and white architectural ink drawing of this exact house. Thick black ink pen lines, crisp edges, pure white paper background, stark black and white, highly detailed graphic illustration, masterpiece, no text.",
+            condition_scale: 0.6, // How strictly it follows the structural lines of the house
+            negative_prompt: "photorealistic, ugly, distorted geometry, cars, text, watermarks, dark, trees blocking house, low quality.",
+            num_outputs: 1,
           }
         }
       );

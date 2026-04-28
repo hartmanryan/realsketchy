@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Loader } from "@googlemaps/js-api-loader";
+import { setOptions, importLibrary } from "@googlemaps/js-api-loader";
 import styles from "../page.module.css";
 
 export default function SharePageForm({ uuid }: { uuid: string }) {
   const [loadingState, setLoadingState] = useState<"idle" | "locating" | "painting" | "success">("idle");
+  const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
   const [address, setAddress] = useState("");
   const addressInputRef = useRef<HTMLInputElement>(null);
 
@@ -18,14 +19,13 @@ export default function SharePageForm({ uuid }: { uuid: string }) {
           return;
         }
 
-        const loader = new Loader({
-          apiKey: apiKey,
-          version: "weekly",
-          libraries: ["places"]
+        setOptions({
+          key: apiKey,
+          v: "weekly"
         });
 
         // @ts-ignore
-        const { Autocomplete } = await loader.importLibrary("places");
+        const { Autocomplete } = await importLibrary("places");
 
         if (addressInputRef.current) {
           const autocomplete = new Autocomplete(addressInputRef.current, {
@@ -75,6 +75,10 @@ export default function SharePageForm({ uuid }: { uuid: string }) {
       });
 
       if (res.ok) {
+        const data = await res.json();
+        if (data.imageUrl) {
+          setGeneratedImageUrl(data.imageUrl);
+        }
         setLoadingState("success");
       } else if (res.status === 402) {
         alert("The real estate agent has run out of generation credits.");
@@ -96,8 +100,15 @@ export default function SharePageForm({ uuid }: { uuid: string }) {
         <div className={styles.successContainer}>
           <div className={styles.successIcon}>✨</div>
           <h2 className={styles.title}>Sketch Complete!</h2>
+          
+          {generatedImageUrl && (
+            <div style={{ marginTop: '1.5rem', marginBottom: '1.5rem', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
+              <img src={generatedImageUrl} alt="Generated Architectural Sketch" style={{ width: '100%', height: 'auto', display: 'block' }} />
+            </div>
+          )}
+
           <p style={{ color: "var(--text-muted)", marginTop: "1rem" }}>
-            Your custom architectural watercolor is being prepared and will be sent to you shortly.
+            Your custom architectural sketch has been sent to your email and is being prepared for physical mailing!
           </p>
         </div>
       </div>
@@ -110,13 +121,13 @@ export default function SharePageForm({ uuid }: { uuid: string }) {
         <div className={styles.loadingOverlay}>
           <div className={styles.spinner}></div>
           <div className={styles.loadingText}>
-            {loadingState === "locating" ? "Locating architecture..." : "Applying watercolor layers..."}
+            {loadingState === "locating" ? "Locating architecture..." : "Drawing ink lines and hatching... (This takes about 30 seconds)"}
           </div>
         </div>
       )}
 
-      <h2 className={styles.title}>See Your Home as Art</h2>
-      <p className={styles.subtitle}>Enter your address to receive a custom AI watercolor sketch.</p>
+      <h2 className={styles.title}>Get A Custom Black & White Sketch Of Your House, FREE</h2>
+      <p className={styles.subtitle}>Enter your address to receive a custom AI architectural sketch.</p>
 
       <form onSubmit={handleSubmit}>
         <div className={styles.formGroup}>
@@ -157,7 +168,7 @@ export default function SharePageForm({ uuid }: { uuid: string }) {
 
         <label className={styles.checkboxGroup}>
           <input type="checkbox" name="valuation" disabled={loadingState !== "idle"} />
-          <span>Also request a free home valuation report</span>
+          <span>Get A Detailed Report Showing What A Buyer Might Pay For Your House Today</span>
         </label>
 
         <button type="submit" className={`btn-primary ${styles.submitBtn}`} disabled={loadingState !== "idle"}>
