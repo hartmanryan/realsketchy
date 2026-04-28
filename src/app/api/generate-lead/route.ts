@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import Replicate from "replicate";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import sharp from "sharp";
 
 export const maxDuration = 60;
 
@@ -43,7 +44,7 @@ export async function POST(req: Request) {
     }
 
     // 2. Capture Base Image (Google Street View)
-    const streetViewUrl = `https://maps.googleapis.com/maps/api/streetview?size=640x640&location=${encodeURIComponent(address)}&fov=50&pitch=10&key=${process.env.GOOGLE_STREETVIEW_API_KEY}`;
+    const streetViewUrl = `https://maps.googleapis.com/maps/api/streetview?size=640x640&location=${encodeURIComponent(address)}&fov=65&pitch=10&key=${process.env.GOOGLE_STREETVIEW_API_KEY}`;
     
     const streetViewRes = await fetch(streetViewUrl);
     if (!streetViewRes.ok) {
@@ -82,11 +83,17 @@ export async function POST(req: Request) {
     const aiImageBuffer = await imageFetchRes.arrayBuffer();
     const fileName = `sketches/${Date.now()}-${widget_uuid}.jpg`;
 
+    // Resize image to fit 6x4 postcards perfectly (1875x1275)
+    const resizedImageBuffer = await sharp(Buffer.from(aiImageBuffer))
+      .resize(1875, 1275, { fit: "cover" })
+      .jpeg({ quality: 90 })
+      .toBuffer();
+
     await s3Client.send(
       new PutObjectCommand({
         Bucket: process.env.AWS_S3_BUCKET_NAME,
         Key: fileName,
-        Body: Buffer.from(aiImageBuffer),
+        Body: resizedImageBuffer,
         ContentType: "image/jpeg",
         // ACL: "public-read", // Omit if bucket policies handle public access
       })
@@ -135,9 +142,15 @@ export async function POST(req: Request) {
     if (process.env.THANKS_IO_API_TOKEN) {
       try {
         const thanksPayload: any = {
+          sub_account_id: "3230",
           front_image_url: s3ImageUrl,
-          message: `Hi ${fullName}, hope you love this architectural sketch of ${address}! Let me know if you want a free valuation.`
+          message: `Thanks for requesting a sketch of your property recently. To see what a buyer might pay for ${addressComponents ? addressComponents.street : address} today, scan the QR code now.`,
+          email_additional: widgetSettings.user.email
         };
+
+        if (widgetSettings.home_valuation_url) {
+          thanksPayload.qr_code_url = widgetSettings.home_valuation_url;
+        }
 
         if (addressComponents) {
           thanksPayload.recipients = [{

@@ -57,6 +57,7 @@ export default async function DashboardOverview() {
 
   const widgetUuid = user.widget_settings?.widget_uuid || "error-loading-uuid";
   const webhookUrl = user.widget_settings?.destination_webhook_url || "";
+  const homeValuationUrl = user.widget_settings?.home_valuation_url || "";
   const domain = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
   const shareLink = `${domain}/p/${widgetUuid}`;
 
@@ -72,6 +73,24 @@ export default async function DashboardOverview() {
         await prisma.widgetSettings.update({
           where: { user_id: u.id },
           data: { destination_webhook_url: newWebhookUrl },
+        });
+        revalidatePath("/dashboard");
+      }
+    }
+  }
+
+  // Server action to update Home Valuation URL
+  async function updateValuationUrl(formData: FormData) {
+    "use server";
+    const newUrl = formData.get("valuationUrl") as string;
+    const { userId: actionUserId } = await auth();
+    
+    if (actionUserId) {
+      const u = await prisma.user.findUnique({ where: { auth_id: actionUserId } });
+      if (u) {
+        await prisma.widgetSettings.update({
+          where: { user_id: u.id },
+          data: { home_valuation_url: newUrl },
         });
         revalidatePath("/dashboard");
       }
@@ -117,6 +136,25 @@ export default async function DashboardOverview() {
           />
           <button type="submit" className="btn-primary" style={{ whiteSpace: 'nowrap' }}>
             Save Webhook
+          </button>
+        </form>
+      </div>
+
+      <div className={styles.card} style={{ marginTop: '2rem' }}>
+        <h2 className={styles.cardTitle}>3. Home Valuation URL (QR Code)</h2>
+        <p>Enter a URL to direct homeowners to when they scan the QR code on the physical postcard. We will send an email notification to you when it is scanned.</p>
+        
+        <form action={updateValuationUrl} style={{ marginTop: '1rem', display: 'flex', gap: '1rem' }}>
+          <input 
+            type="url" 
+            name="valuationUrl" 
+            placeholder="https://your-website.com/home-valuation" 
+            defaultValue={homeValuationUrl}
+            className="input-field" 
+            required
+          />
+          <button type="submit" className="btn-primary" style={{ whiteSpace: 'nowrap' }}>
+            Save URL
           </button>
         </form>
       </div>
