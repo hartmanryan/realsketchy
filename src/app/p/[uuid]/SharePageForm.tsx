@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { importLibrary, setOptions } from "@googlemaps/js-api-loader";
+import { Loader } from "@googlemaps/js-api-loader";
 import styles from "../page.module.css";
 
 export default function SharePageForm({ uuid }: { uuid: string }) {
@@ -12,13 +12,20 @@ export default function SharePageForm({ uuid }: { uuid: string }) {
   useEffect(() => {
     const initMap = async () => {
       try {
-        setOptions({
-          apiKey: process.env.NEXT_PUBLIC_GOOGLE_PLACES_KEY as string,
-          version: "weekly"
-        } as any);
+        const apiKey = process.env.NEXT_PUBLIC_GOOGLE_PLACES_KEY;
+        if (!apiKey) {
+          console.error("Missing NEXT_PUBLIC_GOOGLE_PLACES_KEY environment variable");
+          return;
+        }
+
+        const loader = new Loader({
+          apiKey: apiKey,
+          version: "weekly",
+          libraries: ["places"]
+        });
 
         // @ts-ignore
-        const { Autocomplete } = await importLibrary("places");
+        const { Autocomplete } = await loader.importLibrary("places");
 
         if (addressInputRef.current) {
           const autocomplete = new Autocomplete(addressInputRef.current, {
@@ -38,9 +45,7 @@ export default function SharePageForm({ uuid }: { uuid: string }) {
       }
     };
 
-    if (process.env.NEXT_PUBLIC_GOOGLE_PLACES_KEY) {
-      initMap();
-    }
+    initMap();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
